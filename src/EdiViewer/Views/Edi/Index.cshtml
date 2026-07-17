@@ -1,0 +1,51 @@
+@model EdiViewer.Models.EdiUploadViewModel
+@{
+    ViewData["Title"] = "EDI Viewer";
+}
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <h1 class="mb-4">EDI Viewer</h1>
+        <p class="text-muted">Upload or paste an EDI document to display it in a human-readable format.</p>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger" role="alert">
+                @Html.ValidationSummary(false)
+            </div>
+        }
+
+        <form method="post" enctype="multipart/form-data" asp-controller="Edi" asp-action="Index">
+            @Html.AntiForgeryToken()
+
+            <div class="card mb-3">
+                <div class="card-header">Option 1 — Upload EDI File</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="EdiFile" class="form-label"></label>
+                        <input asp-for="EdiFile" type="file" class="form-control" accept=".edi,.x12,.txt" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center my-3 text-muted fw-semibold">— or —</div>
+
+            <div class="card mb-3">
+                <div class="card-header">Option 2 — Paste EDI Content</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="EdiText" class="form-label"></label>
+                        <textarea asp-for="EdiText" class="form-control font-monospace" rows="12"
+                                  placeholder="ISA*00*          *00*          *ZZ*SENDERID       *ZZ*RECEIVERID     *230101*1200*^*00501*000000001*0*P*:~&#10;GS*PO*SENDER*RECEIVER*20230101*1200*1*X*005010~&#10;ST*850*0001~&#10;...&#10;SE*2*0001~&#10;GE*1*1~&#10;IEA*1*000000001~"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-eye"></i> View EDI
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

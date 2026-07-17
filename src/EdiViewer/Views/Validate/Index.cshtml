@@ -1,0 +1,137 @@
+@model EdiViewer.Models.EdiValidateViewModel
+@{
+    ViewData["Title"] = "EDI Validator";
+}
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <h1 class="mb-4">EDI Validator</h1>
+        <p class="text-muted">
+            Upload or paste an EDI document to validate it for syntactic and structural correctness.
+        </p>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger" role="alert">
+                @Html.ValidationSummary(false)
+            </div>
+        }
+
+        <form method="post" enctype="multipart/form-data" asp-controller="Validate" asp-action="Index">
+            @Html.AntiForgeryToken()
+
+            <div class="card mb-3">
+                <div class="card-header">Option 1 — Upload EDI File</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="EdiFile" class="form-label"></label>
+                        <input asp-for="EdiFile" type="file" class="form-control" accept=".edi,.x12,.txt" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center my-3 text-muted fw-semibold">— or —</div>
+
+            <div class="card mb-3">
+                <div class="card-header">Option 2 — Paste EDI Content</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="EdiText" class="form-label"></label>
+                        <textarea asp-for="EdiText" class="form-control font-monospace" rows="12"
+                                  placeholder="Paste your X12 or EDIFACT EDI content here..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-success btn-lg">
+                    ✓ Validate EDI
+                </button>
+            </div>
+        </form>
+
+        @* ── Validation Result ──────────────────────────────────────────────── *@
+        @if (Model.Result is not null)
+        {
+            var result = Model.Result;
+            var badgeClass = result.IsValid ? "bg-success" : "bg-danger";
+            var statusText = result.IsValid ? "Valid" : "Invalid";
+            var alertClass = result.IsValid ? "alert-success" : "alert-danger";
+
+            <hr class="my-4" />
+            <h2>Validation Result</h2>
+
+            <div class="alert @alertClass d-flex align-items-center" role="alert">
+                <span class="badge @badgeClass fs-6 me-3">@statusText</span>
+                <div>
+                    <strong>Dialect:</strong> @result.Dialect
+                    @if (result.IsValid)
+                    {
+                        <span class="ms-2">— No errors found.</span>
+                    }
+                    else
+                    {
+                        <span class="ms-2">— @(result.Errors.Count) error(s) found.</span>
+                    }
+                </div>
+            </div>
+
+            @* Parse errors *@
+            @if (result.HasParseErrors)
+            {
+                <div class="card mb-3 border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <strong>Parse Issues (@result.ParseErrors.Count)</strong>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-sm mb-0">
+                            <thead class="table-warning">
+                                <tr>
+                                    <th>Severity</th>
+                                    <th>Code</th>
+                                    <th>Message</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var err in result.ParseErrors)
+                                {
+                                    <tr>
+                                        <td><span class="badge bg-warning text-dark">@err.Severity</span></td>
+                                        <td class="font-monospace">@err.Code</td>
+                                        <td>@err.Message</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+
+            @* Validation errors *@
+            @if (result.Errors.Count > 0)
+            {
+                <div class="card mb-3 border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <strong>Errors (@result.Errors.Count)</strong>
+                    </div>
+                    <div class="card-body p-0">
+                        @await Html.PartialAsync("_ValidationErrorTable", result.Errors)
+                    </div>
+                </div>
+            }
+
+            @* Validation warnings *@
+            @if (result.Warnings.Count > 0)
+            {
+                <div class="card mb-3 border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <strong>Warnings (@result.Warnings.Count)</strong>
+                    </div>
+                    <div class="card-body p-0">
+                        @await Html.PartialAsync("_ValidationErrorTable", result.Warnings)
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>

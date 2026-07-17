@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/libs/">
+    <Project Path="libs/EdiX/EdiX.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/EdiViewer/EdiViewer.csproj" />
+  </Folder>
+</Solution>
