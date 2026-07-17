@@ -1,0 +1,130 @@
+@model EdiViewer.Models.EdiDocumentViewModel
+@{
+    ViewData["Title"] = "EDI Document";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>EDI Document</h1>
+    <a asp-controller="Edi" asp-action="Index" class="btn btn-outline-secondary">
+        ← Upload Another
+    </a>
+</div>
+
+@if (Model.HasParseErrors)
+{
+    <div class="alert alert-warning" role="alert">
+        <h5 class="alert-heading">Parse Warnings</h5>
+        <ul class="mb-0">
+            @foreach (var err in Model.ParseErrors)
+            {
+                <li><strong>[@err.Severity] @err.Code</strong> — @err.Message</li>
+            }
+        </ul>
+    </div>
+}
+
+@* ── Interchange Header ─────────────────────────────────────────────────── *@
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <strong>@Model.Dialect Interchange</strong>
+    </div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Sender ID</dt>
+            <dd class="col-sm-9 font-monospace">@(Model.Interchange.SenderId ?? "—")</dd>
+            <dt class="col-sm-3">Receiver ID</dt>
+            <dd class="col-sm-9 font-monospace">@(Model.Interchange.ReceiverId ?? "—")</dd>
+            @if (Model.Interchange.ControlNumber is not null)
+            {
+                <dt class="col-sm-3">Control Number</dt>
+                <dd class="col-sm-9 font-monospace">@Model.Interchange.ControlNumber</dd>
+            }
+            @if (Model.Interchange.Date is not null)
+            {
+                <dt class="col-sm-3">Date</dt>
+                <dd class="col-sm-9">@Model.Interchange.Date</dd>
+            }
+            @if (Model.Interchange.Time is not null)
+            {
+                <dt class="col-sm-3">Time</dt>
+                <dd class="col-sm-9">@Model.Interchange.Time</dd>
+            }
+            @if (Model.Interchange.Version is not null)
+            {
+                <dt class="col-sm-3">Version</dt>
+                <dd class="col-sm-9">@Model.Interchange.Version</dd>
+            }
+            @if (Model.Interchange.UsageIndicator is not null)
+            {
+                <dt class="col-sm-3">Usage</dt>
+                <dd class="col-sm-9">@Model.Interchange.UsageIndicator</dd>
+            }
+        </dl>
+    </div>
+</div>
+
+@* ── Functional Groups ──────────────────────────────────────────────────── *@
+@foreach (var (group, gi) in Model.Interchange.Groups.Select((g, i) => (g, i)))
+{
+    <div class="card mb-4">
+        <div class="card-header bg-secondary text-white">
+            <strong>Functional Group @(gi + 1)</strong>
+            @if (group.FunctionalIdentifier is not null)
+            {
+                <span class="ms-2 badge bg-light text-dark">@group.FunctionalIdentifier</span>
+            }
+        </div>
+        <div class="card-body">
+            @if (group.SenderId is not null || group.ReceiverId is not null || group.ControlNumber is not null)
+            {
+                <dl class="row mb-3">
+                    @if (group.SenderId is not null)
+                    {
+                        <dt class="col-sm-3">Sender</dt>
+                        <dd class="col-sm-9 font-monospace">@group.SenderId</dd>
+                    }
+                    @if (group.ReceiverId is not null)
+                    {
+                        <dt class="col-sm-3">Receiver</dt>
+                        <dd class="col-sm-9 font-monospace">@group.ReceiverId</dd>
+                    }
+                    @if (group.Date is not null)
+                    {
+                        <dt class="col-sm-3">Date</dt>
+                        <dd class="col-sm-9">@group.Date</dd>
+                    }
+                    @if (group.ControlNumber is not null)
+                    {
+                        <dt class="col-sm-3">Control Number</dt>
+                        <dd class="col-sm-9 font-monospace">@group.ControlNumber</dd>
+                    }
+                </dl>
+            }
+
+            @foreach (var (tx, ti) in group.Transactions.Select((t, i) => (t, i)))
+            {
+                @await Html.PartialAsync("_TransactionPartial", tx)
+            }
+        </div>
+    </div>
+}
+
+@* ── Ungrouped Transactions (EDIFACT) ───────────────────────────────────── *@
+@foreach (var tx in Model.Interchange.UngroupedTransactions)
+{
+    @await Html.PartialAsync("_TransactionPartial", tx)
+}
+
+@* ── Raw EDI ────────────────────────────────────────────────────────────── *@
+<div class="card mt-4">
+    <div class="card-header">
+        <button class="btn btn-sm btn-link p-0" type="button" data-bs-toggle="collapse" data-bs-target="#rawEdi">
+            Show Raw EDI
+        </button>
+    </div>
+    <div id="rawEdi" class="collapse">
+        <div class="card-body">
+            <pre class="font-monospace small mb-0" style="white-space: pre-wrap; word-break: break-all;">@Model.RawEdi</pre>
+        </div>
+    </div>
+</div>

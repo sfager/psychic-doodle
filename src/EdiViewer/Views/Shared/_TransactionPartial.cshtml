@@ -1,0 +1,52 @@
+@model EdiViewer.Models.EdiTransactionViewModel
+
+<div class="card mb-3 border-info">
+    <div class="card-header bg-info bg-opacity-10">
+        <strong>Transaction @Model.TransactionType</strong>
+        @if (!string.IsNullOrEmpty(Model.TransactionTypeName))
+        {
+            <span class="ms-2 text-muted">— @Model.TransactionTypeName</span>
+        }
+    </div>
+    <div class="card-body p-0">
+        @if (Model.Segments.Count == 0)
+        {
+            <p class="text-muted p-3 mb-0">No body segments.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm table-hover table-striped mb-0 font-monospace">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="width:80px">Segment</th>
+                            <th style="width:220px">Description</th>
+                            <th>Elements</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var seg in Model.Segments)
+                        {
+                            <tr>
+                                <td class="fw-bold">@seg.Id</td>
+                                <td class="text-muted small font-sans-serif">@seg.Description</td>
+                                <td>
+                                    @foreach (var (elem, idx) in seg.Elements.Select((e, i) => (e, i + 1)))
+                                    {
+                                        if (!string.IsNullOrEmpty(elem))
+                                        {
+                                            <span class="me-2">
+                                                <span class="text-secondary small">@(seg.Id + idx.ToString("D2")):</span>
+                                                <span>@elem</span>
+                                            </span>
+                                        }
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
