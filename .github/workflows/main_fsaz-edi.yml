@@ -24,7 +24,7 @@ jobs:
           dotnet-version: '8.x'
 
       - name: Add GitHub Packages source
-        run: dotnet nuget add source --username sfager --password ${{ secrets.NUGET_PKG_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/sfager/index.json"
+        run: dotnet nuget add source --username sfager --password "${{ secrets.READ_PACKAGE_TOKEN }}" --name github "https://nuget.pkg.github.com/sfager/index.json"
 
       - name: Build with dotnet
         run: dotnet build --configuration Release
